@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Base URL — change to your server IP/domain before production
 // Base URL is now defined in core/constants.dart
-const String baseUrl = "http://192.168.217.73:8080/";
+//const String baseUrl = "http://192.168.217.73:8080/"; it is set in constants.dart
 
 
 class ApiService {
