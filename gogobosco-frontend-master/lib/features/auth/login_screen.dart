@@ -116,21 +116,21 @@ class _LoginScreenState extends State<LoginScreen>
                     children: [
                       // Back button
                       GestureDetector(
-                        onTap: () => context.go('/auth_landing'),
-                        child: Container(
-                          width: 42,
-                          height: 42,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.arrow_back_ios_new_rounded,
-                            size: 18,
-                            color: AppTheme.textDark,
+                          onTap: () => Navigator.of(context).pop(),
+                          child: Container(
+                            width: 42,
+                            height: 42,
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.arrow_back_ios_new_rounded,
+                              size: 18,
+                              color: AppTheme.textDark,
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -388,8 +388,20 @@ class _LoginScreenState extends State<LoginScreen>
                                           'assets/search.png',
                                           height: 20,
                                         ),
-                                        onTap: () =>
-                                            context.go('/home'),
+                                        onTap: () async {
+                                              try {
+                                                final response = await AuthService.signInWithGoogle();
+                                                if (mounted) {
+                                                  context.go('/home');
+                                                }
+                                              } catch (e) {
+                                                if (mounted) {
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(content: Text('Google sign‑in failed: $e')),
+                                                  );
+                                                }
+                                              }
+                                            },
                                       ),
                                     ),
                                     const SizedBox(width: 14),

@@ -141,7 +141,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                   child: Row(
                     children: [
                       GestureDetector(
-                        onTap: () => context.go('/auth_landing'),
+                        onTap: () => Navigator.of(context).pop(),
                         child: Container(
                           width: 42,
                           height: 42,
@@ -299,35 +299,7 @@ class _RegisterScreenState extends State<RegisterScreen>
 
                                 const SizedBox(height: 16),
 
-                                // ── ROLE DROPDOWN
-                                _buildLabel('Role'),
-                                const SizedBox(height: 8),
-                                DropdownButtonFormField<String>(
-                                  initialValue: role,
-                                  decoration: _fieldDecoration(
-                                    'Select your role',
-                                    Icons.assignment_ind_outlined,
-                                  ),
-                                  items: const [
-                                    DropdownMenuItem(
-                                      value: 'General User',
-                                      child: Text('General User'),
-                                    ),
-                                    DropdownMenuItem(
-                                      value: 'Student',
-                                      child: Text('Student'),
-                                    ),
-                                    DropdownMenuItem(
-                                      value: 'Job Seeker',
-                                      child: Text('Job Seeker'),
-                                    ),
-                                  ],
-                                  onChanged: (val) =>
-                                      setState(() => role = val!),
-                                ),
-
-                                const SizedBox(height: 16),
-
+                 
                                 // ── PASSWORD
                                 _buildLabeledField(
                                   label: 'Password',
