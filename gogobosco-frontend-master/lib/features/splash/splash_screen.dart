@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:gogobosco/core/theme.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -24,20 +25,53 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/ggbLogo.png', // make sure this EXACT file exists
-              height: 300,
-            ),
-
-            const SizedBox(height: 20),
-
-            const DotLoader(), // 👈 custom 3-dot loader
-          ],
+      backgroundColor: AppTheme.backgroundWhite,
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Spacer(),
+              // Animated container/scale for premium entry
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.8, end: 1.0),
+                duration: const Duration(milliseconds: 1000),
+                curve: Curves.elasticOut,
+                builder: (context, val, child) {
+                  return Transform.scale(
+                    scale: val,
+                    child: child,
+                  );
+                },
+                child: Image.asset(
+                  'assets/ggbLogo.png',
+                  height: 200,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                "GoGoBosco",
+                style: TextStyle(
+                  color: AppTheme.primaryRed,
+                  fontSize: 32,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                "Your Gateway to Opportunities",
+                style: TextStyle(
+                  color: AppTheme.textMuted,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const Spacer(),
+              const DotLoader(),
+              const SizedBox(height: 48),
+            ],
+          ),
         ),
       ),
     );
@@ -71,24 +105,31 @@ class _DotLoaderState extends State<DotLoader>
     super.dispose();
   }
 
-  Widget buildDot(double delay) {
+  Widget buildDot(double delay, Color color) {
     return AnimatedBuilder(
       animation: controller,
       builder: (context, child) {
         double value = (controller.value - delay);
         value = value < 0 ? value + 1 : value;
 
-        double translateY = -10 * (0.5 - (value - 0.5).abs());
+        double translateY = -12 * (0.5 - (value - 0.5).abs());
 
         return Transform.translate(offset: Offset(0, translateY), child: child);
       },
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        width: 10,
-        height: 10,
-        decoration: const BoxDecoration(
-          color: Colors.red,
+        margin: const EdgeInsets.symmetric(horizontal: 5),
+        width: 12,
+        height: 12,
+        decoration: BoxDecoration(
+          color: color,
           shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.3),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
       ),
     );
@@ -98,7 +139,12 @@ class _DotLoaderState extends State<DotLoader>
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [buildDot(0.0), buildDot(0.2), buildDot(0.4)],
+      children: [
+        buildDot(0.0, AppTheme.primaryRed),
+        buildDot(0.2, AppTheme.accentYellow),
+        buildDot(0.4, AppTheme.primaryRed),
+      ],
     );
   }
 }
+

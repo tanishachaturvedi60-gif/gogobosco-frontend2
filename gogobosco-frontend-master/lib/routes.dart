@@ -1,7 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'features/splash/splash_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
+import 'features/auth/auth_landing_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/register_screen.dart';
 import 'features/home/home_dashboard.dart';
@@ -13,59 +15,144 @@ import 'screens/events_page.dart';
 import 'screens/jobs_page.dart';
 import 'screens/news_page.dart';
 
+Page<dynamic> buildPageWithTransition({
+  required Widget child,
+  required LocalKey key,
+}) {
+  return CustomTransitionPage<void>(
+    key: key,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 380),
+    reverseTransitionDuration: const Duration(milliseconds: 320),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+        CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+      );
+      final fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+      );
+      final slideAnimation = Tween<Offset>(
+        begin: const Offset(0.0, 0.03), // subtle slide up
+        end: Offset.zero,
+      ).animate(
+        CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+      );
+
+      return FadeTransition(
+        opacity: fadeAnimation,
+        child: SlideTransition(
+          position: slideAnimation,
+          child: ScaleTransition(
+            scale: scaleAnimation,
+            child: child,
+          ),
+        ),
+      );
+    },
+  );
+}
+
 class AppRoutes {
   static final GoRouter router = GoRouter(
     initialLocation: '/',
     routes: [
       /// 🔹 SPLASH
-      GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
+      GoRoute(
+        path: '/',
+        pageBuilder: (context, state) => buildPageWithTransition(
+          key: state.pageKey,
+          child: const SplashScreen(),
+        ),
+      ),
 
       /// 🔹 ONBOARDING
       GoRoute(
         path: '/onboard',
-        builder: (context, state) => const OnboardingScreen(),
+        pageBuilder: (context, state) => buildPageWithTransition(
+          key: state.pageKey,
+          child: const OnboardingScreen(),
+        ),
+      ),
+
+      /// 🔹 AUTH LANDING
+      GoRoute(
+        path: '/auth_landing',
+        pageBuilder: (context, state) => buildPageWithTransition(
+          key: state.pageKey,
+          child: const AuthLandingScreen(),
+        ),
       ),
 
       /// 🔹 AUTH
-      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+      GoRoute(
+        path: '/login',
+        pageBuilder: (context, state) => buildPageWithTransition(
+          key: state.pageKey,
+          child: const LoginScreen(),
+        ),
+      ),
       GoRoute(
         path: '/register',
-        builder: (context, state) => const RegisterScreen(),
+        pageBuilder: (context, state) => buildPageWithTransition(
+          key: state.pageKey,
+          child: const RegisterScreen(),
+        ),
       ),
 
       /// 🔥 MAIN APP (WITH BOTTOM NAV)
       ShellRoute(
         builder: (context, state, child) {
-          return HomeScreen(child: child); // 👈 IMPORTANT CHANGE
+          return HomeScreen(child: child);
         },
         routes: [
           GoRoute(
             path: '/home',
-            builder: (context, state) => const HomeDashboard(),
+            pageBuilder: (context, state) => buildPageWithTransition(
+              key: state.pageKey,
+              child: const HomeDashboard(),
+            ),
           ),
-          GoRoute(path: '/map', builder: (context, state) => const MapScreen()),
+          GoRoute(
+            path: '/map',
+            pageBuilder: (context, state) => buildPageWithTransition(
+              key: state.pageKey,
+              child: const MapScreen(),
+            ),
+          ),
           GoRoute(
             path: '/profile',
-            builder: (context, state) => const ProfileScreen(),
+            pageBuilder: (context, state) => buildPageWithTransition(
+              key: state.pageKey,
+              child: const ProfileScreen(),
+            ),
           ),
           GoRoute(
             path: '/institutions',
-            builder: (context, state) => const InstitutionsPage(),
+            pageBuilder: (context, state) => buildPageWithTransition(
+              key: state.pageKey,
+              child: const InstitutionsPage(),
+            ),
           ),
-
           GoRoute(
             path: '/events',
-            builder: (context, state) => const EventsPage(),
+            pageBuilder: (context, state) => buildPageWithTransition(
+              key: state.pageKey,
+              child: const EventsPage(),
+            ),
           ),
-
           GoRoute(
             path: '/jobs',
-            builder: (context, state) => const JobsPage(),
+            pageBuilder: (context, state) => buildPageWithTransition(
+              key: state.pageKey,
+              child: const JobsPage(),
+            ),
           ),
-
           GoRoute(
             path: '/news',
-            builder: (context, state) => const NewsPage(),
+            pageBuilder: (context, state) => buildPageWithTransition(
+              key: state.pageKey,
+              child: const NewsPage(),
+            ),
           ),
         ],
       ),

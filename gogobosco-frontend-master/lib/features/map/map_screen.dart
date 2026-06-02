@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:gogobosco/core/theme.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -50,14 +51,41 @@ class _MapScreenState extends State<MapScreen> {
                     zoomControlsEnabled: false,
                   )
                 : Container(
-                    color: Colors.grey.shade200,
-                    child: const Center(
-                      child: Text(
-                        "Map Disabled (Dev Mode)",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
+                    color: AppTheme.bgLight,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryRed.withValues(alpha: 0.08),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.map_rounded,
+                              size: 64,
+                              color: AppTheme.primaryRed,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            "Map Disabled (Dev Mode)",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              color: AppTheme.textDark,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            "Google Maps interface is currently offline",
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppTheme.textMuted,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -69,22 +97,27 @@ class _MapScreenState extends State<MapScreen> {
             left: 16,
             right: 16,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
+                color: AppTheme.backgroundWhite,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppTheme.borderLight, width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    blurRadius: 10,
-                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 20,
+                    color: Colors.black.withValues(alpha: 0.06),
+                    offset: const Offset(0, 8),
                   ),
                 ],
               ),
               child: const TextField(
                 decoration: InputDecoration(
-                  hintText: "Search institutions...",
+                  hintText: "Search institutions, centers...",
                   border: InputBorder.none,
-                  icon: Icon(Icons.search),
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  prefixIcon: Icon(Icons.search, color: AppTheme.textMuted),
+                  contentPadding: EdgeInsets.symmetric(vertical: 12),
                 ),
               ),
             ),
@@ -98,44 +131,65 @@ class _MapScreenState extends State<MapScreen> {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
+                color: AppTheme.backgroundWhite,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: AppTheme.borderLight, width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    blurRadius: 10,
-                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 25,
+                    color: Colors.black.withValues(alpha: 0.08),
+                    offset: const Offset(0, 10),
                   ),
                 ],
               ),
               child: Row(
                 children: [
                   Container(
-                    width: 60,
-                    height: 60,
+                    width: 54,
+                    height: 54,
                     decoration: BoxDecoration(
-                      color: Colors.red.shade100,
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppTheme.primaryRed.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Icon(Icons.school, color: Colors.red),
+                    child: const Icon(Icons.school, color: AppTheme.primaryRed, size: 26),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 14),
                   const Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           "Don Bosco Institution",
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 16,
+                            color: AppTheme.textDark,
+                          ),
                         ),
                         SizedBox(height: 4),
                         Text(
-                          "Tap to view details",
-                          style: TextStyle(color: Colors.grey),
+                          "Guwahati, Assam • 1.2 km away",
+                          style: TextStyle(
+                            color: AppTheme.textMuted,
+                            fontSize: 13,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  const Icon(Icons.arrow_forward_ios, size: 16),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.bgLight,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 16,
+                      color: AppTheme.textDark,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -143,10 +197,15 @@ class _MapScreenState extends State<MapScreen> {
 
           /// 🎯 FLOATING BUTTON
           Positioned(
-            bottom: 100,
+            bottom: 110,
             right: 16,
             child: FloatingActionButton(
-              backgroundColor: const Color(0xFFD32F2F),
+              backgroundColor: AppTheme.primaryRed,
+              foregroundColor: Colors.white,
+              elevation: 6,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               onPressed: showMap
                   ? () {
                       mapController?.animateCamera(
@@ -154,7 +213,7 @@ class _MapScreenState extends State<MapScreen> {
                       );
                     }
                   : null, // disabled if map is off
-              child: const Icon(Icons.my_location),
+              child: const Icon(Icons.my_location_rounded),
             ),
           ),
         ],
@@ -162,3 +221,4 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 }
+

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:gogobosco/core/theme.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -7,87 +8,117 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
-
+      backgroundColor: AppTheme.bgLight,
       body: SafeArea(
         child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           child: Column(
             children: [
               /// 🔴 HEADER
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
+                padding: const EdgeInsets.fromLTRB(20, 30, 20, 36),
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Color(0xFFD32F2F), Color(0xFFB71C1C)],
+                    colors: [AppTheme.primaryRed, Color(0xFFCC0000)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
                   ),
                   borderRadius: BorderRadius.vertical(
-                    bottom: Radius.circular(30),
+                    bottom: Radius.circular(36),
                   ),
                 ),
                 child: Column(
                   children: [
-                    /// AVATAR
-                    CircleAvatar(
-                      radius: 45,
-                      backgroundColor: Colors.white,
-                      child: const Icon(
-                        Icons.person,
-                        size: 50,
-                        color: Colors.red,
+                    /// AVATAR WITH YELLOW ACCENT RING
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: AppTheme.accentYellow,
+                        shape: BoxShape.circle,
+                      ),
+                      child: CircleAvatar(
+                        radius: 44,
+                        backgroundColor: AppTheme.backgroundWhite,
+                        child: const Icon(
+                          Icons.person_rounded,
+                          size: 48,
+                          color: AppTheme.primaryRed,
+                        ),
                       ),
                     ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
 
                     /// NAME
                     const Text(
                       "ANT",
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
                       ),
                     ),
 
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
 
                     /// ROLE
-                    const Text(
-                      "General User",
-                      style: TextStyle(color: Colors.white70),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Text(
+                        "General User",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
 
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 20),
 
                     /// EDIT BUTTON
                     OutlinedButton(
                       onPressed: () {},
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.white),
+                        side: const BorderSide(color: Colors.white, width: 1.5),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                       ),
                       child: const Text(
                         "Edit Profile",
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
               /// 📊 STATS
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
+                    color: AppTheme.backgroundWhite,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: AppTheme.borderLight, width: 1.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -100,52 +131,58 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
 
               /// ⚙️ SETTINGS SECTION
               _section(
-                title: "Account",
+                title: "ACCOUNTSETTINGS",
                 children: [
-                  _tile(Icons.person, "My Profile", () {}),
-                  _tile(Icons.lock, "Change Password", () {}),
+                  _tile(Icons.person_outline_rounded, "My Profile", () {}),
+                  _tile(Icons.lock_outline_rounded, "Change Password", () {}),
                 ],
               ),
 
               _section(
-                title: "App",
+                title: "PREFERENCES",
                 children: [
-                  _tile(Icons.notifications, "Notifications", () {}),
-                  _tile(Icons.dark_mode, "Dark Mode", () {}),
+                  _tile(Icons.notifications_none_rounded, "Notifications", () {}),
+                  _tile(Icons.dark_mode_outlined, "Dark Mode", () {}),
                 ],
               ),
 
               _section(
-                title: "Support",
+                title: "SUPPORT",
                 children: [
-                  _tile(Icons.help_outline, "Help Center", () {}),
-                  _tile(Icons.info_outline, "About App", () {}),
+                  _tile(Icons.help_outline_rounded, "Help Center", () {}),
+                  _tile(Icons.info_outline_rounded, "About App", () {}),
                 ],
               ),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 24),
 
               /// 🚪 LOGOUT
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: ElevatedButton(
                   onPressed: () => context.go('/login'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    minimumSize: const Size(double.infinity, 50),
+                    backgroundColor: AppTheme.primaryRed,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 54),
+                    elevation: 4,
+                    shadowColor: AppTheme.primaryRed.withValues(alpha: 0.2),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(18),
                     ),
                   ),
-                  child: const Text("Logout"),
+                  child: const Text(
+                    "Logout",
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                  ),
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 32),
             ],
           ),
         ),
@@ -156,24 +193,39 @@ class ProfileScreen extends StatelessWidget {
   /// 🔹 SECTION
   Widget _section({required String title, required List<Widget> children}) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.grey,
+          Padding(
+            padding: const EdgeInsets.only(left: 8, bottom: 8),
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontWeight: FontWeight.w900,
+                color: AppTheme.textMuted,
+                fontSize: 12,
+                letterSpacing: 1.0,
+              ),
             ),
           ),
-          const SizedBox(height: 6),
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              color: AppTheme.backgroundWhite,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppTheme.borderLight, width: 1.5),
             ),
-            child: Column(children: children),
+            child: Column(
+              children: List.generate(children.length, (index) {
+                if (index == children.length - 1) return children[index];
+                return Column(
+                  children: [
+                    children[index],
+                    const Divider(height: 1, color: AppTheme.borderLight, thickness: 1),
+                  ],
+                );
+              }),
+            ),
           ),
         ],
       ),
@@ -183,10 +235,28 @@ class ProfileScreen extends StatelessWidget {
   /// 🔹 LIST TILE
   static Widget _tile(IconData icon, String title, VoidCallback onTap) {
     return ListTile(
-      leading: Icon(icon, color: const Color(0xFFD32F2F)),
-      title: Text(title),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: AppTheme.primaryRed.withValues(alpha: 0.08),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: AppTheme.primaryRed, size: 20),
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontWeight: FontWeight.w700,
+          color: AppTheme.textDark,
+          fontSize: 15,
+        ),
+      ),
+      trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppTheme.textMuted),
       onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+      ),
     );
   }
 }
@@ -204,11 +274,23 @@ class _StatItem extends StatelessWidget {
       children: [
         Text(
           value,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          style: const TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 20,
+            color: AppTheme.textDark,
+          ),
         ),
         const SizedBox(height: 4),
-        Text(label, style: const TextStyle(color: Colors.grey)),
+        Text(
+          label,
+          style: const TextStyle(
+            color: AppTheme.textMuted,
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+          ),
+        ),
       ],
     );
   }
 }
+
