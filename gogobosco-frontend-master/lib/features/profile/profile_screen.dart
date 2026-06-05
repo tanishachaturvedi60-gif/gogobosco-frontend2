@@ -1,197 +1,246 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gogobosco/core/theme.dart';
+import 'package:gogobosco/services/auth_services.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  Map<String, dynamic>? _user;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    // First load from cache for instant display
+    final cached = await AuthService.getCachedUser();
+    if (mounted) setState(() => _user = cached);
+
+    // Then fetch fresh data from the API
+    final live = await AuthService.fetchProfile();
+    if (mounted) setState(() {
+      _user = live ?? cached;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _logout() async {
+    await AuthService.logout();
+    if (mounted) context.go('/login');
+  }
+
+  String get _displayName {
+    if (_user == null) return '...';
+    return _user!['fullName']?.toString().isNotEmpty == true
+        ? _user!['fullName']
+        : _user!['username'] ?? '...';
+  }
+
+  String get _displayRole {
+    if (_user == null) return '...';
+    final role = _user!['role']?.toString() ?? 'GENERAL';
+    // Capitalise first letter only
+    return role[0].toUpperCase() + role.substring(1).toLowerCase();
+  }
+
+  String get _displayEmail {
+    return _user?['email']?.toString() ?? '';
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.bgLight,
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            children: [
-              /// 🔴 HEADER
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(20, 30, 20, 36),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppTheme.primaryRed, Color(0xFFCC0000)],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                  borderRadius: BorderRadius.vertical(
-                    bottom: Radius.circular(36),
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    /// AVATAR WITH YELLOW ACCENT RING
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: AppTheme.accentYellow,
-                        shape: BoxShape.circle,
-                      ),
-                      child: CircleAvatar(
-                        radius: 44,
-                        backgroundColor: AppTheme.backgroundWhite,
-                        child: const Icon(
-                          Icons.person_rounded,
-                          size: 48,
-                          color: AppTheme.primaryRed,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    /// NAME
-                    const Text(
-                      "ANT",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-
-                    const SizedBox(height: 6),
-
-                    /// ROLE
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Text(
-                        "General User",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    /// EDIT BUTTON
-                    OutlinedButton(
-                      onPressed: () {},
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.white, width: 1.5),
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      child: const Text(
-                        "Edit Profile",
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              /// 📊 STATS
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  decoration: BoxDecoration(
-                    color: AppTheme.backgroundWhite,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: AppTheme.borderLight, width: 1.5),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.02),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+        child: _isLoading && _user == null
+            ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryRed))
+            : RefreshIndicator(
+                color: AppTheme.primaryRed,
+                onRefresh: _loadProfile,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
                     children: [
-                      _StatItem("12", "Events"),
-                      _StatItem("5", "Jobs"),
-                      _StatItem("8", "Saved"),
+                      /// 🔴 HEADER
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.fromLTRB(20, 30, 20, 36),
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [AppTheme.primaryRed, Color(0xFFCC0000)],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                          borderRadius: BorderRadius.vertical(
+                            bottom: Radius.circular(36),
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            /// AVATAR
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: AppTheme.accentYellow,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const CircleAvatar(
+                                radius: 44,
+                                backgroundColor: AppTheme.backgroundWhite,
+                                child: Icon(
+                                  Icons.person_rounded,
+                                  size: 48,
+                                  color: AppTheme.primaryRed,
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            /// NAME
+                            Text(
+                              _displayName,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 22,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+
+                            const SizedBox(height: 4),
+
+                            /// EMAIL
+                            Text(
+                              _displayEmail,
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 13,
+                              ),
+                            ),
+
+                            const SizedBox(height: 8),
+
+                            /// ROLE BADGE
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.18),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                _displayRole,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            /// EDIT BUTTON
+                            OutlinedButton(
+                              onPressed: () {},
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(
+                                    color: Colors.white, width: 1.5),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 24, vertical: 10),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                              child: const Text(
+                                'Edit Profile',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      /// ⚙️ SETTINGS SECTION
+                      _section(
+                        title: 'ACCOUNT SETTINGS',
+                        children: [
+                          _tile(Icons.person_outline_rounded, 'My Profile',
+                              () {}),
+                          _tile(Icons.lock_outline_rounded, 'Change Password',
+                              () {}),
+                        ],
+                      ),
+
+                      _section(
+                        title: 'PREFERENCES',
+                        children: [
+                          _tile(Icons.notifications_none_rounded,
+                              'Notifications', () {}),
+                          _tile(Icons.dark_mode_outlined, 'Dark Mode', () {}),
+                        ],
+                      ),
+
+                      _section(
+                        title: 'SUPPORT',
+                        children: [
+                          _tile(Icons.help_outline_rounded, 'Help Center',
+                              () {}),
+                          _tile(Icons.info_outline_rounded, 'About App', () {}),
+                        ],
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      /// 🚪 LOGOUT
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: ElevatedButton(
+                          onPressed: _logout,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryRed,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size(double.infinity, 54),
+                            elevation: 4,
+                            shadowColor:
+                                AppTheme.primaryRed.withValues(alpha: 0.2),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                          ),
+                          child: const Text(
+                            'Logout',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w900, fontSize: 16),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 32),
                     ],
                   ),
                 ),
               ),
-
-              const SizedBox(height: 10),
-
-              /// ⚙️ SETTINGS SECTION
-              _section(
-                title: "ACCOUNTSETTINGS",
-                children: [
-                  _tile(Icons.person_outline_rounded, "My Profile", () {}),
-                  _tile(Icons.lock_outline_rounded, "Change Password", () {}),
-                ],
-              ),
-
-              _section(
-                title: "PREFERENCES",
-                children: [
-                  _tile(Icons.notifications_none_rounded, "Notifications", () {}),
-                  _tile(Icons.dark_mode_outlined, "Dark Mode", () {}),
-                ],
-              ),
-
-              _section(
-                title: "SUPPORT",
-                children: [
-                  _tile(Icons.help_outline_rounded, "Help Center", () {}),
-                  _tile(Icons.info_outline_rounded, "About App", () {}),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-
-              /// 🚪 LOGOUT
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: ElevatedButton(
-                  onPressed: () => context.go('/login'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryRed,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 54),
-                    elevation: 4,
-                    shadowColor: AppTheme.primaryRed.withValues(alpha: 0.2),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                  ),
-                  child: const Text(
-                    "Logout",
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 32),
-            ],
-          ),
-        ),
       ),
     );
   }
 
-  /// 🔹 SECTION
-  Widget _section({required String title, required List<Widget> children}) {
+  Widget _section(
+      {required String title, required List<Widget> children}) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: Column(
@@ -221,7 +270,10 @@ class ProfileScreen extends StatelessWidget {
                 return Column(
                   children: [
                     children[index],
-                    const Divider(height: 1, color: AppTheme.borderLight, thickness: 1),
+                    const Divider(
+                        height: 1,
+                        color: AppTheme.borderLight,
+                        thickness: 1),
                   ],
                 );
               }),
@@ -232,8 +284,8 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  /// 🔹 LIST TILE
-  static Widget _tile(IconData icon, String title, VoidCallback onTap) {
+  static Widget _tile(
+      IconData icon, String title, VoidCallback onTap) {
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
@@ -251,9 +303,11 @@ class ProfileScreen extends StatelessWidget {
           fontSize: 15,
         ),
       ),
-      trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppTheme.textMuted),
+      trailing: const Icon(Icons.arrow_forward_ios_rounded,
+          size: 14, color: AppTheme.textMuted),
       onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
       ),
@@ -293,4 +347,3 @@ class _StatItem extends StatelessWidget {
     );
   }
 }
-

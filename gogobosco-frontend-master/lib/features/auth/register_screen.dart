@@ -21,7 +21,7 @@ class _RegisterScreenState extends State<RegisterScreen>
   final password = TextEditingController();
   final confirmPassword = TextEditingController();
 
-  String role = 'General User';
+  // Role is always GENERAL on registration — set by the backend
   bool isLoading = false;
   bool obscurePassword = true;
   bool obscureConfirm = true;
@@ -73,12 +73,11 @@ class _RegisterScreenState extends State<RegisterScreen>
     setState(() => isLoading = true);
     try {
       await AuthService.register(
-        firstName: firstName.text,
-        lastName: lastName.text,
-        email: email.text,
-        phone: phone.text,
+        firstName: firstName.text.trim(),
+        lastName: lastName.text.trim(),
+        email: email.text.trim(),
+        phone: phone.text.trim(),
         password: password.text,
-        role: role,
       );
       if (!mounted) return;
       context.go('/home');
@@ -532,17 +531,7 @@ class _RegisterScreenState extends State<RegisterScreen>
     );
   }
 
-  Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: const TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w700,
-        color: AppTheme.textDark,
-        letterSpacing: 0.2,
-      ),
-    );
-  }
+  // _buildLabel removed — label is already handled inside _buildLabeledField
 
   Widget _buildLabeledField({
     required String label,
