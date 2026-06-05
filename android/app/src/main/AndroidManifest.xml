@@ -2,8 +2,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <application
         android:label="gogobosco"
-        android:icon="@mipmap/ic_ggb_launcher_logo"
-        android:usesCleartextTraffic="true">
+        android:icon="@mipmap/ic_ggb_launcher_logo">
         <activity
             android:name=".MainActivity"
             android:exported="true"

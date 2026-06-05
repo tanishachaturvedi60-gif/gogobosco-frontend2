@@ -1,10 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gogobosco/core/theme.dart';
-import 'package:gogobosco/data/mock_data.dart';
 
 class HomeDashboard extends StatelessWidget {
   const HomeDashboard({super.key});
+
+  static final List<Map<String, String>> _updates = [
+    {
+      "title": "Admissions Open for 2026",
+      "subtitle": "Applications are now live for Don Bosco Tech courses.",
+      "type": "Admissions",
+      "time": "2 hours ago",
+      "tagColor": "yellow", // yellow tag
+    },
+    {
+      "title": "National Youth Seminar",
+      "subtitle": "Join the annual leadership event at Bosco Hall.",
+      "type": "Event",
+      "time": "1 day ago",
+      "tagColor": "red", // red tag
+    },
+    {
+      "title": "Tech Job Fair 2026",
+      "subtitle": "15+ companies recruiting on-campus next Tuesday.",
+      "type": "Job Fair",
+      "time": "2 days ago",
+      "tagColor": "yellow",
+    },
+    {
+      "title": "Scholarship Deadline Extended",
+      "subtitle": "Submit your applications before the June 15 limit.",
+      "type": "Notice",
+      "time": "3 days ago",
+      "tagColor": "red",
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +57,7 @@ class HomeDashboard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Hello there 👋",
+                        "Hello ANT 👋",
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -36,7 +66,7 @@ class HomeDashboard extends StatelessWidget {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        "Do explore GoGoBosco!",
+                        "Welcome Back",
                         style: TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.w900,
@@ -177,12 +207,12 @@ class HomeDashboard extends StatelessWidget {
 
               /// 📰 FEED LIST
               ListView.builder(
-                itemCount: MockData.updates.length,
+                itemCount: _updates.length,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemBuilder: (context, i) {
-                  final update = MockData.updates[i];
-                  return _feedCard(context, update);
+                  final update = _updates[i];
+                  return _feedCard(update);
                 },
               ),
               const SizedBox(height: 16),
@@ -253,7 +283,7 @@ class HomeDashboard extends StatelessWidget {
   }
 
   /// 🔹 FEED CARD (Polished list item with custom tags)
-  Widget _feedCard(BuildContext context, Map<String, String> update) {
+  Widget _feedCard(Map<String, String> update) {
     final bool isRedTag = update["tagColor"] == "red";
     final Color tagBg = isRedTag 
         ? AppTheme.primaryRed.withValues(alpha: 0.08) 
@@ -262,94 +292,91 @@ class HomeDashboard extends StatelessWidget {
         ? AppTheme.primaryRed 
         : AppTheme.textDark;
 
-    return GestureDetector(
-      onTap: () => context.push('/update/${update["id"]}'),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 14),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppTheme.backgroundWhite,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppTheme.borderLight, width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.01),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.backgroundWhite,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.borderLight, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.01),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: tagBg,
+              borderRadius: BorderRadius.circular(14),
             ),
-          ],
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: tagBg,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(
-                isRedTag ? Icons.campaign_rounded : Icons.star_rounded,
-                color: tagText,
-                size: 24,
-              ),
+            child: Icon(
+              isRedTag ? Icons.campaign_rounded : Icons.star_rounded,
+              color: tagText,
+              size: 24,
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: tagBg,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          update["type"]!.toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w900,
-                            color: tagText,
-                            letterSpacing: 0.5,
-                          ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: tagBg,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        update["type"]!.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          color: tagText,
+                          letterSpacing: 0.5,
                         ),
                       ),
-                      Text(
-                        update["time"]!,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppTheme.textMuted,
-                        ),
+                    ),
+                    Text(
+                      update["time"]!,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppTheme.textMuted,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    update["title"]!,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 15,
-                      color: AppTheme.textDark,
                     ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  update["title"]!,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 15,
+                    color: AppTheme.textDark,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    update["subtitle"]!,
-                    style: const TextStyle(
-                      color: AppTheme.textMuted,
-                      fontSize: 13,
-                      height: 1.3,
-                    ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  update["subtitle"]!,
+                  style: const TextStyle(
+                    color: AppTheme.textMuted,
+                    fontSize: 13,
+                    height: 1.3,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

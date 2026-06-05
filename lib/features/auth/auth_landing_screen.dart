@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gogobosco/core/theme.dart';
-import 'package:gogobosco/services/auth_services.dart';
 
 class AuthLandingScreen extends StatefulWidget {
   const AuthLandingScreen({super.key});
@@ -158,7 +157,7 @@ class _AuthLandingScreenState extends State<AuthLandingScreen>
                       ),
 
                       const Text(
-                        'Welcome to GGB👋',
+                        'Welcome back! 👋',
                         style: TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.w900,
@@ -183,7 +182,7 @@ class _AuthLandingScreenState extends State<AuthLandingScreen>
                         backgroundColor: AppTheme.accentYellow,
                         foregroundColor: AppTheme.textDark,
                         trailingIcon: Icons.arrow_forward_rounded,
-                        onTap: () => context.push('/login'),
+                        onTap: () => context.go('/login'),
                       ),
 
                       const SizedBox(height: 14),
@@ -193,7 +192,7 @@ class _AuthLandingScreenState extends State<AuthLandingScreen>
                         label: 'Create Account',
                         backgroundColor: AppTheme.primaryRed,
                         foregroundColor: Colors.white,
-                        onTap: () => context.push('/register'),
+                        onTap: () => context.go('/register'),
                       ),
 
                       const SizedBox(height: 14),
@@ -205,12 +204,7 @@ class _AuthLandingScreenState extends State<AuthLandingScreen>
                         foregroundColor: AppTheme.textDark,
                         isOutlined: true,
                         leadingIcon: Icons.person_outline_rounded,
-                        onTap: () async {
-                          await AuthService.logout();
-                          if (context.mounted) {
-                            context.go('/home');
-                          }
-                        },
+                        onTap: () => context.go('/home'),
                       ),
 
                       const SizedBox(height: 28),
