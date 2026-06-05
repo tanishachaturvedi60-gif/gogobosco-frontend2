@@ -14,6 +14,11 @@ import 'screens/institutions_page.dart';
 import 'screens/events_page.dart';
 import 'screens/jobs_page.dart';
 import 'screens/news_page.dart';
+import 'screens/institution_detail_page.dart';
+import 'screens/event_detail_page.dart';
+import 'screens/job_detail_page.dart';
+import 'screens/news_detail_page.dart';
+import 'screens/update_detail_page.dart';
 
 Page<dynamic> buildPageWithTransition({
   required Widget child,
@@ -96,6 +101,41 @@ class AppRoutes {
         pageBuilder: (context, state) => buildPageWithTransition(
           key: state.pageKey,
           child: const RegisterScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/institution/:id',
+        pageBuilder: (context, state) => buildPageWithTransition(
+          key: state.pageKey,
+          child: InstitutionDetailPage(id: state.pathParameters['id'] ?? ''),
+        ),
+      ),
+      GoRoute(
+        path: '/event/:id',
+        pageBuilder: (context, state) => buildPageWithTransition(
+          key: state.pageKey,
+          child: EventDetailPage(id: state.pathParameters['id'] ?? ''),
+        ),
+      ),
+      GoRoute(
+        path: '/job/:id',
+        pageBuilder: (context, state) => buildPageWithTransition(
+          key: state.pageKey,
+          child: JobDetailPage(id: state.pathParameters['id'] ?? ''),
+        ),
+      ),
+      GoRoute(
+        path: '/news/:id',
+        pageBuilder: (context, state) => buildPageWithTransition(
+          key: state.pageKey,
+          child: NewsDetailPage(id: state.pathParameters['id'] ?? ''),
+        ),
+      ),
+      GoRoute(
+        path: '/update/:id',
+        pageBuilder: (context, state) => buildPageWithTransition(
+          key: state.pageKey,
+          child: UpdateDetailPage(id: state.pathParameters['id'] ?? ''),
         ),
       ),
 

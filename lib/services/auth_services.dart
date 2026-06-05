@@ -1,7 +1,8 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'api_service.dart';
 
 class AuthService {
@@ -22,7 +23,7 @@ class AuthService {
 
       final Session? session = response.session;
       if (session == null) {
-        throw Exception('Supabase login failed: ${response.error?.message ?? 'unknown'}');
+        throw Exception('Supabase login failed: session is null');
       }
 
       final User? user = response.user;
@@ -74,7 +75,7 @@ class AuthService {
 
       final Session? session = response.session;
       if (session == null) {
-        throw Exception('Supabase registration failed: ${response.error?.message ?? 'unknown'}');
+        throw Exception('Supabase registration failed: session is null');
       }
 
       final User? user = response.user;
@@ -109,24 +110,110 @@ class AuthService {
     await ApiService.clearToken();
   }
 
-  // ─── GOOGLE SIGN‑IN ────────────────────────────────────────────────────────
-  /// Initiates Google OAuth via Supabase.
+  // ─── GOOGLE SIGN-IN ────────────────────────────────────────────────────────
+  /// Initiates Google OAuth via Supabase using native Google Sign-In.
   static Future<Map<String, dynamic>> signInWithGoogle() async {
     try {
-      final AuthResponse response = await _client.auth.signInWithProvider(
-        Provider.google,
-      );
+      if (kIsWeb) {
+        final bool success = await _client.auth.signInWithOAuth(OAuthProvider.google);
+        if (!success) {
+          throw Exception('Google sign-in failed');
+        }
 
-      final Session? session = response.session;
-      if (session == null) {
-        throw Exception('Google sign‑in failed: ${response.error?.message ?? 'unknown'}');
+        final Session? session = _client.auth.currentSession;
+        if (session == null) {
+          throw Exception('Google sign-in failed: session is null');
+        }
+
+        final User? user = _client.auth.currentUser;
+        final userData = {
+          "id": user?.id.hashCode,
+          "uid": user?.id,
+          "name": user?.userMetadata?['full_name'] ?? user?.email?.split('@')[0] ?? '',
+          "email": user?.email ?? '',
+          "role": user?.userMetadata?['role'] ?? 'General User',
+        };
+
+        await ApiService.saveToken(session.accessToken);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_data', jsonEncode(userData));
+
+        return {
+          "status": "success",
+          "message": "Google sign‑in successful",
+          "data": {"token": session.accessToken, "user": userData},
+        };
+      } else {
+        final GoogleSignIn googleSignIn = GoogleSignIn();
+        final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+        if (googleUser == null) {
+          throw Exception('Google sign-in aborted by user');
+        }
+
+        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        final String? idToken = googleAuth.idToken;
+        final String? accessToken = googleAuth.accessToken;
+
+        if (idToken == null) {
+          throw Exception('No ID Token found.');
+        }
+
+        final AuthResponse response = await _client.auth.signInWithIdToken(
+          provider: OAuthProvider.google,
+          idToken: idToken,
+          accessToken: accessToken,
+        );
+
+        final Session? session = response.session;
+        if (session == null) {
+          throw Exception('Google sign-in failed: session is null');
+        }
+
+        final User? user = response.user;
+        final userData = {
+          "id": user?.id.hashCode,
+          "uid": user?.id,
+          "name": user?.userMetadata?['full_name'] ?? user?.email?.split('@')[0] ?? '',
+          "email": user?.email ?? '',
+          "role": user?.userMetadata?['role'] ?? 'General User',
+        };
+
+        await ApiService.saveToken(session.accessToken);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_data', jsonEncode(userData));
+
+        return {
+          "status": "success",
+          "message": "Google sign‑in successful",
+          "data": {"token": session.accessToken, "user": userData},
+        };
+      }
+    } catch (e) {
+      debugPrint('Google sign‑in error: $e');
+      rethrow;
+    }
+  }
+
+  // ─── APPLE SIGN-IN ────────────────────────────────────────────────────────
+  /// Initiates Apple Sign-In via Supabase.
+  static Future<Map<String, dynamic>> signInWithApple() async {
+    try {
+      final bool success = await _client.auth.signInWithOAuth(OAuthProvider.apple);
+
+      if (!success) {
+        throw Exception('Apple sign-in failed');
       }
 
-      final User? user = response.user;
+      final Session? session = _client.auth.currentSession;
+      if (session == null) {
+        throw Exception('Apple sign-in failed: session is null');
+      }
+
+      final User? user = _client.auth.currentUser;
       final userData = {
         "id": user?.id.hashCode,
         "uid": user?.id,
-        "name": user?.userMetadata?['full_name'] ?? user?.email?.split('@')[0] ?? '',
+        "name": user?.userMetadata?['full_name'] ?? user?.email?.split('@')[0] ?? 'Apple User',
         "email": user?.email ?? '',
         "role": user?.userMetadata?['role'] ?? 'General User',
       };
@@ -137,11 +224,11 @@ class AuthService {
 
       return {
         "status": "success",
-        "message": "Google sign‑in successful",
+        "message": "Apple sign‑in successful",
         "data": {"token": session.accessToken, "user": userData},
       };
     } catch (e) {
-      debugPrint('Google sign‑in error: $e');
+      debugPrint('Apple sign‑in error: $e');
       rethrow;
     }
   }

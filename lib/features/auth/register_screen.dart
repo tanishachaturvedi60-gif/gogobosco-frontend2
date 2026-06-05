@@ -141,7 +141,13 @@ class _RegisterScreenState extends State<RegisterScreen>
                   child: Row(
                     children: [
                       GestureDetector(
-                        onTap: () => Navigator.of(context).pop(),
+                        onTap: () {
+                          if (context.canPop()) {
+                            context.pop();
+                          } else {
+                            context.go('/auth_landing');
+                          }
+                        },
                         child: Container(
                           width: 42,
                           height: 42,
@@ -281,7 +287,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                                 _buildLabeledField(
                                   label: 'Email Address',
                                   controller: email,
-                                  hint: 'you@example.com',
+                                  hint: 'gogobosco@gmail.com',
                                   icon: Icons.email_outlined,
                                   keyboardType: TextInputType.emailAddress,
                                 ),
@@ -292,7 +298,7 @@ class _RegisterScreenState extends State<RegisterScreen>
                                 _buildLabeledField(
                                   label: 'Phone Number',
                                   controller: phone,
-                                  hint: '+91 98765 43210',
+                                  hint: '+91 00000 00000',
                                   icon: Icons.phone_outlined,
                                   keyboardType: TextInputType.phone,
                                 ),
@@ -472,7 +478,18 @@ class _RegisterScreenState extends State<RegisterScreen>
                                           'assets/search.png',
                                           height: 20,
                                         ),
-                                        onTap: () => context.go('/home'),
+                                        onTap: () async {
+                                          try {
+                                            await AuthService.signInWithGoogle();
+                                            if (context.mounted) context.go('/home');
+                                          } catch (e) {
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text('Google sign-in failed: $e')),
+                                              );
+                                            }
+                                          }
+                                        },
                                       ),
                                     ),
                                     const SizedBox(width: 14),
@@ -484,7 +501,18 @@ class _RegisterScreenState extends State<RegisterScreen>
                                           color: AppTheme.textDark,
                                           size: 22,
                                         ),
-                                        onTap: () => context.go('/home'),
+                                        onTap: () async {
+                                          try {
+                                            await AuthService.signInWithApple();
+                                            if (context.mounted) context.go('/home');
+                                          } catch (e) {
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text('Apple sign-in failed: $e')),
+                                              );
+                                            }
+                                          }
+                                        },
                                       ),
                                     ),
                                   ],
