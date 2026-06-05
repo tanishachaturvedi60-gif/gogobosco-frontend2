@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gogobosco/core/theme.dart';
+import 'package:gogobosco/services/auth_services.dart';
 
 class AuthLandingScreen extends StatefulWidget {
   const AuthLandingScreen({super.key});
@@ -157,7 +158,7 @@ class _AuthLandingScreenState extends State<AuthLandingScreen>
                       ),
 
                       const Text(
-                        'Welcome back! 👋',
+                        'Welcome to GGB👋',
                         style: TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.w900,
@@ -182,7 +183,7 @@ class _AuthLandingScreenState extends State<AuthLandingScreen>
                         backgroundColor: AppTheme.accentYellow,
                         foregroundColor: AppTheme.textDark,
                         trailingIcon: Icons.arrow_forward_rounded,
-                        onTap: () => context.go('/login'),
+                        onTap: () => context.push('/login'),
                       ),
 
                       const SizedBox(height: 14),
@@ -192,7 +193,7 @@ class _AuthLandingScreenState extends State<AuthLandingScreen>
                         label: 'Create Account',
                         backgroundColor: AppTheme.primaryRed,
                         foregroundColor: Colors.white,
-                        onTap: () => context.go('/register'),
+                        onTap: () => context.push('/register'),
                       ),
 
                       const SizedBox(height: 14),
@@ -204,7 +205,12 @@ class _AuthLandingScreenState extends State<AuthLandingScreen>
                         foregroundColor: AppTheme.textDark,
                         isOutlined: true,
                         leadingIcon: Icons.person_outline_rounded,
-                        onTap: () => context.go('/home'),
+                        onTap: () async {
+                          await AuthService.logout();
+                          if (context.mounted) {
+                            context.go('/home');
+                          }
+                        },
                       ),
 
                       const SizedBox(height: 28),

@@ -1,39 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:gogobosco/core/theme.dart';
+import 'package:gogobosco/data/mock_data.dart';
 
 class JobsPage extends StatelessWidget {
   const JobsPage({super.key});
-
-  static final List<Map<String, String>> _jobs = [
-    {
-      "title": "IT Support Technician",
-      "company": "Don Bosco Institute of Technology",
-      "location": "Guwahati, Assam",
-      "salary": "₹25,000 - ₹35,000 / mo",
-      "type": "Full-Time",
-    },
-    {
-      "title": "Vocational Trainer (Electrician)",
-      "company": "Don Bosco Technical School",
-      "location": "Shillong, Meghalaya",
-      "salary": "₹20,000 - ₹30,000 / mo",
-      "type": "Contract",
-    },
-    {
-      "title": "Admissions Counselor",
-      "company": "Don Bosco College",
-      "location": "Tura, Meghalaya",
-      "salary": "₹18,000 - ₹25,000 / mo",
-      "type": "Full-Time",
-    },
-    {
-      "title": "Assistant Librarian",
-      "company": "Don Bosco School",
-      "location": "Tezpur, Assam",
-      "salary": "₹15,000 - ₹20,000 / mo",
-      "type": "Part-Time",
-    },
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -41,13 +12,23 @@ class JobsPage extends StatelessWidget {
       backgroundColor: AppTheme.bgLight,
       appBar: AppBar(
         title: const Text("Jobs"),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/home');
+            }
+          },
+        ),
       ),
       body: ListView.builder(
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        itemCount: _jobs.length,
+        itemCount: MockData.jobs.length,
         itemBuilder: (context, index) {
-          final job = _jobs[index];
+          final job = MockData.jobs[index];
           final isEven = index % 2 == 0;
           final Color chipBg = isEven 
               ? AppTheme.primaryRed.withValues(alpha: 0.08) 
@@ -56,9 +37,11 @@ class JobsPage extends StatelessWidget {
               ? AppTheme.primaryRed 
               : AppTheme.textDark;
 
-          return Container(
-            margin: const EdgeInsets.only(bottom: 14),
-            decoration: BoxDecoration(
+          return GestureDetector(
+            onTap: () => context.push('/job/${job["id"]}'),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 14),
+              decoration: BoxDecoration(
               color: AppTheme.backgroundWhite,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: AppTheme.borderLight, width: 1.5),
@@ -146,7 +129,7 @@ class JobsPage extends StatelessWidget {
                         ],
                       ),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () => context.push('/job/${job["id"]}'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.accentYellow,
                           foregroundColor: AppTheme.textDark,
@@ -167,8 +150,9 @@ class JobsPage extends StatelessWidget {
                 ],
               ),
             ),
-          );
-        },
+          ),
+        );
+      },
       ),
     );
   }

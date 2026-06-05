@@ -116,7 +116,13 @@ class _LoginScreenState extends State<LoginScreen>
                     children: [
                       // Back button
                       GestureDetector(
-                          onTap: () => Navigator.of(context).pop(),
+                          onTap: () {
+                            if (context.canPop()) {
+                              context.pop();
+                            } else {
+                              context.go('/auth_landing');
+                            }
+                          },
                           child: Container(
                             width: 42,
                             height: 42,
@@ -237,7 +243,7 @@ class _LoginScreenState extends State<LoginScreen>
                                 const SizedBox(height: 8),
                                 _buildTextField(
                                   controller: email,
-                                  hint: 'you@example.com',
+                                  hint: 'gogobosco@gmail.com',
                                   icon: Icons.email_outlined,
                                   keyboardType:
                                       TextInputType.emailAddress,
@@ -389,19 +395,19 @@ class _LoginScreenState extends State<LoginScreen>
                                           height: 20,
                                         ),
                                         onTap: () async {
-                                              try {
-                                                final response = await AuthService.signInWithGoogle();
-                                                if (mounted) {
-                                                  context.go('/home');
-                                                }
-                                              } catch (e) {
-                                                if (mounted) {
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    SnackBar(content: Text('Google sign‑in failed: $e')),
-                                                  );
-                                                }
-                                              }
-                                            },
+                                          try {
+                                            await AuthService.signInWithGoogle();
+                                            if (context.mounted) {
+                                              context.go('/home');
+                                            }
+                                          } catch (e) {
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text('Google sign‑in failed: $e')),
+                                              );
+                                            }
+                                          }
+                                        },
                                       ),
                                     ),
                                     const SizedBox(width: 14),
@@ -413,8 +419,18 @@ class _LoginScreenState extends State<LoginScreen>
                                           color: AppTheme.textDark,
                                           size: 22,
                                         ),
-                                        onTap: () =>
-                                            context.go('/home'),
+                                        onTap: () async {
+                                          try {
+                                            await AuthService.signInWithApple();
+                                            if (context.mounted) context.go('/home');
+                                          } catch (e) {
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text('Apple sign-in failed: $e')),
+                                              );
+                                            }
+                                          }
+                                        },
                                       ),
                                     ),
                                   ],

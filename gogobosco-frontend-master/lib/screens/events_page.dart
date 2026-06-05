@@ -1,39 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:gogobosco/core/theme.dart';
+import 'package:gogobosco/data/mock_data.dart';
 
 class EventsPage extends StatelessWidget {
   const EventsPage({super.key});
-
-  static final List<Map<String, String>> _events = [
-    {
-      "title": "Youth Leadership Summit 2026",
-      "date": "June 10, 2026",
-      "time": "09:00 AM - 04:00 PM",
-      "location": "Main Auditorium, DBIT",
-      "tag": "Summit",
-    },
-    {
-      "title": "Alumni Homecoming Meet",
-      "date": "June 20, 2026",
-      "time": "05:00 PM - 09:00 PM",
-      "location": "DB Tura Football Ground",
-      "tag": "Reunion",
-    },
-    {
-      "title": "Webinar: Future of AI in Education",
-      "date": "June 24, 2026",
-      "time": "03:00 PM - 05:00 PM",
-      "location": "Online (Zoom)",
-      "tag": "Webinar",
-    },
-    {
-      "title": "Vocational Skills Exhibition",
-      "date": "July 02, 2026",
-      "time": "10:00 AM - 05:00 PM",
-      "location": "DB Technical Hall, Shillong",
-      "tag": "Exhibition",
-    },
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -41,13 +12,23 @@ class EventsPage extends StatelessWidget {
       backgroundColor: AppTheme.bgLight,
       appBar: AppBar(
         title: const Text("Events"),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/home');
+            }
+          },
+        ),
       ),
       body: ListView.builder(
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        itemCount: _events.length,
+        itemCount: MockData.events.length,
         itemBuilder: (context, index) {
-          final event = _events[index];
+          final event = MockData.events[index];
           final isEven = index % 2 == 0;
           final Color accentColor = isEven ? AppTheme.primaryRed : AppTheme.accentYellow;
           final Color chipBg = isEven 
@@ -57,9 +38,11 @@ class EventsPage extends StatelessWidget {
               ? AppTheme.primaryRed 
               : AppTheme.textDark;
 
-          return Container(
-            margin: const EdgeInsets.only(bottom: 14),
-            decoration: BoxDecoration(
+          return GestureDetector(
+            onTap: () => context.push('/event/${event["id"]}'),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 14),
+              decoration: BoxDecoration(
               color: AppTheme.backgroundWhite,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: AppTheme.borderLight, width: 1.5),
@@ -155,8 +138,9 @@ class EventsPage extends StatelessWidget {
                 ),
               ],
             ),
-          );
-        },
+          ),
+        );
+      },
       ),
     );
   }

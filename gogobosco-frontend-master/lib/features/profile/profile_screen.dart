@@ -1,12 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gogobosco/core/theme.dart';
+import 'package:gogobosco/services/auth_services.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  Map<String, dynamic>? _user;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      final user = await AuthService.getCurrentUser();
+      setState(() {
+        _user = user;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _handleLogout() async {
+    await AuthService.logout();
+    if (mounted) {
+      context.go('/auth_landing');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: AppTheme.bgLight,
+        body: Center(
+          child: CircularProgressIndicator(color: AppTheme.primaryRed),
+        ),
+      );
+    }
+
+    final bool isGuest = _user == null;
+    final String name = isGuest ? "Guest User" : (_user!["name"] ?? "GGB User");
+    final String role = isGuest ? "Anonymous" : (_user!["role"] ?? "General User");
+
     return Scaffold(
       backgroundColor: AppTheme.bgLight,
       body: SafeArea(
@@ -40,10 +89,10 @@ class ProfileScreen extends StatelessWidget {
                       child: CircleAvatar(
                         radius: 44,
                         backgroundColor: AppTheme.backgroundWhite,
-                        child: const Icon(
+                        child: Icon(
                           Icons.person_rounded,
                           size: 48,
-                          color: AppTheme.primaryRed,
+                          color: isGuest ? Colors.grey : AppTheme.primaryRed,
                         ),
                       ),
                     ),
@@ -51,9 +100,9 @@ class ProfileScreen extends StatelessWidget {
                     const SizedBox(height: 16),
 
                     /// NAME
-                    const Text(
-                      "ANT",
-                      style: TextStyle(
+                    Text(
+                      name,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 22,
                         fontWeight: FontWeight.w900,
@@ -70,9 +119,9 @@ class ProfileScreen extends StatelessWidget {
                         color: Colors.white.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Text(
-                        "General User",
-                        style: TextStyle(
+                      child: Text(
+                        role,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -82,21 +131,22 @@ class ProfileScreen extends StatelessWidget {
 
                     const SizedBox(height: 20),
 
-                    /// EDIT BUTTON
-                    OutlinedButton(
-                      onPressed: () {},
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.white, width: 1.5),
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                    /// EDIT BUTTON (Only active for registered users)
+                    if (!isGuest)
+                      OutlinedButton(
+                        onPressed: () {},
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.white, width: 1.5),
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: const Text(
+                          "Edit Profile",
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                         ),
                       ),
-                      child: const Text(
-                        "Edit Profile",
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -120,12 +170,14 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _StatItem("12", "Events"),
-                      _StatItem("5", "Jobs"),
-                      _StatItem("8", "Saved"),
+                      _StatItem(isGuest ? "0" : "12", "Events"),
+                      Container(width: 1, height: 40, color: AppTheme.borderLight),
+                      _StatItem(isGuest ? "0" : "5", "Jobs"),
+                      Container(width: 1, height: 40, color: AppTheme.borderLight),
+                      _StatItem(isGuest ? "0" : "8", "Saved"),
                     ],
                   ),
                 ),
@@ -135,10 +187,10 @@ class ProfileScreen extends StatelessWidget {
 
               /// ⚙️ SETTINGS SECTION
               _section(
-                title: "ACCOUNTSETTINGS",
+                title: "ACCOUNT SETTINGS",
                 children: [
                   _tile(Icons.person_outline_rounded, "My Profile", () {}),
-                  _tile(Icons.lock_outline_rounded, "Change Password", () {}),
+                  if (!isGuest) _tile(Icons.lock_outline_rounded, "Change Password", () {}),
                 ],
               ),
 
@@ -160,24 +212,26 @@ class ProfileScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              /// 🚪 LOGOUT
+              /// 🚪 LOGOUT / SIGN IN BUTTON
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: ElevatedButton(
-                  onPressed: () => context.go('/login'),
+                  onPressed: isGuest ? () => context.go('/auth_landing') : _handleLogout,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryRed,
-                    foregroundColor: Colors.white,
+                    backgroundColor: isGuest ? AppTheme.accentYellow : AppTheme.primaryRed,
+                    foregroundColor: isGuest ? AppTheme.textDark : Colors.white,
                     minimumSize: const Size(double.infinity, 54),
                     elevation: 4,
-                    shadowColor: AppTheme.primaryRed.withValues(alpha: 0.2),
+                    shadowColor: isGuest 
+                        ? AppTheme.accentYellow.withValues(alpha: 0.2) 
+                        : AppTheme.primaryRed.withValues(alpha: 0.2),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(18),
                     ),
                   ),
-                  child: const Text(
-                    "Logout",
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                  child: Text(
+                    isGuest ? "Sign In / Register" : "Logout",
+                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
                   ),
                 ),
               ),
@@ -192,6 +246,7 @@ class ProfileScreen extends StatelessWidget {
 
   /// 🔹 SECTION
   Widget _section({required String title, required List<Widget> children}) {
+    if (children.isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: Column(
@@ -293,4 +348,3 @@ class _StatItem extends StatelessWidget {
     );
   }
 }
-
