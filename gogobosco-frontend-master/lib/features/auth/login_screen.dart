@@ -53,7 +53,10 @@ class _LoginScreenState extends State<LoginScreen>
     if (!_formKey.currentState!.validate()) return;
     setState(() => isLoading = true);
     try {
-      await AuthService.login(email: email.text, password: password.text);
+      await AuthService.login(
+        usernameOrEmail: email.text.trim(),
+        password: password.text,
+      );
       if (!mounted) return;
       context.go('/home');
     } catch (e) {

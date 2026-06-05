@@ -1,170 +1,112 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'api_service.dart';
 
+/// Authentication service that talks to the Spring Boot backend.
+/// All login/register calls go to /api/auth/* endpoints which issue
+/// our custom BCrypt-verified JWT tokens.
 class AuthService {
-  // Supabase client (assumes Supabase.initialize has been called in main())
-  static final SupabaseClient _client = Supabase.instance.client;
-
   // ─── LOGIN ─────────────────────────────────────────────────────────────────
-  /// Authenticates user using email & password via Supabase.
+  /// Authenticates user via Spring Boot JWT endpoint.
+  /// Accepts either a username or email in [usernameOrEmail].
   static Future<Map<String, dynamic>> login({
-    required String email,
+    required String usernameOrEmail,
     required String password,
   }) async {
     try {
-      final AuthResponse response = await _client.auth.signInWithPassword(
-        email: email,
-        password: password,
+      final response = await ApiService.post(
+        '/auth/login',
+        {'usernameOrEmail': usernameOrEmail, 'password': password},
       );
 
-      final Session? session = response.session;
-      if (session == null) {
-        throw Exception('Supabase login failed: ${response.error?.message ?? 'unknown'}');
-      }
+      final data = response['data'] as Map<String, dynamic>;
+      final token = data['token'] as String;
+      final user = data['user'] as Map<String, dynamic>;
 
-      final User? user = response.user;
-      final userData = {
-        "id": user?.id.hashCode,
-        "uid": user?.id,
-        "name": user?.userMetadata?['full_name'] ?? email.split('@')[0],
-        "email": user?.email ?? email,
-        "role": user?.userMetadata?['role'] ?? 'General User',
-      };
-
-      // Cache token and user data
-      await ApiService.saveToken(session.accessToken);
+      await ApiService.saveToken(token);
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user_data', jsonEncode(userData));
+      await prefs.setString('user_data', jsonEncode(user));
 
-      return {
-        "status": "success",
-        "message": "Login successful",
-        "data": {"token": session.accessToken, "user": userData},
-      };
+      return response;
     } catch (e) {
-      debugPrint('Supabase login error: $e');
+      debugPrint('Login error: $e');
       rethrow;
     }
   }
 
   // ─── REGISTER ──────────────────────────────────────────────────────────────
-  /// Registers a new user via Supabase.
+  /// Registers a new user via Spring Boot endpoint.
+  /// New users are assigned the GENERAL role automatically by the backend.
   static Future<Map<String, dynamic>> register({
     required String firstName,
     required String lastName,
     required String email,
     String? phone,
     required String password,
-    String role = "General User",
   }) async {
     try {
-      final AuthResponse response = await _client.auth.signUp(
-        email: email,
-        password: password,
-        data: {
-          "first_name": firstName,
-          "last_name": lastName,
-          "full_name": "$firstName $lastName",
-          "phone": phone ?? "",
+      final response = await ApiService.post(
+        '/auth/register',
+        {
+          'firstName': firstName,
+          'lastName': lastName,
+          'email': email,
+          'phone': phone ?? '',
+          'password': password,
         },
       );
 
-      final Session? session = response.session;
-      if (session == null) {
-        throw Exception('Supabase registration failed: ${response.error?.message ?? 'unknown'}');
-      }
+      final data = response['data'] as Map<String, dynamic>;
+      final token = data['token'] as String;
+      final user = data['user'] as Map<String, dynamic>;
 
-      final User? user = response.user;
-      final userData = {
-        "id": user?.id.hashCode,
-        "uid": user?.id,
-        "name": user?.userMetadata?['full_name'] ?? "$firstName $lastName",
-        "email": user?.email ?? email,
-        "phone": phone ?? "",
-      };
-
-      // Cache token and user data
-      await ApiService.saveToken(session.accessToken);
+      await ApiService.saveToken(token);
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user_data', jsonEncode(userData));
+      await prefs.setString('user_data', jsonEncode(user));
 
-      return {
-        "status": "success",
-        "message": "Registration successful",
-        "data": {"token": session.accessToken, "user": userData},
-      };
+      return response;
     } catch (e) {
-      debugPrint('Supabase register error: $e');
+      debugPrint('Register error: $e');
       rethrow;
     }
   }
 
   // ─── LOGOUT ────────────────────────────────────────────────────────────────
-  /// Signs out the current Supabase session.
+  /// Clears the stored JWT token and cached user data.
   static Future<void> logout() async {
-    await _client.auth.signOut();
     await ApiService.clearToken();
   }
 
-  // ─── GOOGLE SIGN‑IN ────────────────────────────────────────────────────────
-  /// Initiates Google OAuth via Supabase.
-  static Future<Map<String, dynamic>> signInWithGoogle() async {
+  // ─── GET CACHED USER ───────────────────────────────────────────────────────
+  /// Reads the last-saved user profile from SharedPreferences.
+  static Future<Map<String, dynamic>?> getCachedUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final data = prefs.getString('user_data');
+    if (data == null) return null;
+    return jsonDecode(data) as Map<String, dynamic>;
+  }
+
+  // ─── FETCH LIVE PROFILE ────────────────────────────────────────────────────
+  /// Fetches the current authenticated user's profile from the backend.
+  /// Returns null if the user is not logged in or the request fails.
+  static Future<Map<String, dynamic>?> fetchProfile() async {
     try {
-      final AuthResponse response = await _client.auth.signInWithProvider(
-        Provider.google,
-      );
-
-      final Session? session = response.session;
-      if (session == null) {
-        throw Exception('Google sign‑in failed: ${response.error?.message ?? 'unknown'}');
-      }
-
-      final User? user = response.user;
-      final userData = {
-        "id": user?.id.hashCode,
-        "uid": user?.id,
-        "name": user?.userMetadata?['full_name'] ?? user?.email?.split('@')[0] ?? '',
-        "email": user?.email ?? '',
-        "role": user?.userMetadata?['role'] ?? 'General User',
-      };
-
-      await ApiService.saveToken(session.accessToken);
+      final response = await ApiService.get('/users/me', auth: true);
+      // Cache the updated profile
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user_data', jsonEncode(userData));
-
-      return {
-        "status": "success",
-        "message": "Google sign‑in successful",
-        "data": {"token": session.accessToken, "user": userData},
-      };
+      await prefs.setString('user_data', jsonEncode(response));
+      return response;
     } catch (e) {
-      debugPrint('Google sign‑in error: $e');
-      rethrow;
+      debugPrint('fetchProfile error: $e');
+      return null;
     }
   }
 
-  // ─── GET CURRENT USER ──────────────────────────────────────────────────────
-  /// Retrieves the active logged‑in Supabase user profile.
-  static Future<Map<String, dynamic>?> getCurrentUser() async {
-    final Session? session = _client.auth.currentSession;
-    if (session == null) return null;
-    final User? user = _client.auth.currentUser;
-    if (user == null) return null;
-    return {
-      "id": user.id.hashCode,
-      "uid": user.id,
-      "name": user.userMetadata?['full_name'] ?? user.email?.split('@')[0] ?? '',
-      "email": user.email ?? '',
-      "role": user.userMetadata?['role'] ?? 'General User',
-    };
-  }
-
   // ─── IS LOGGED IN ──────────────────────────────────────────────────────────
-  /// Determines if a Supabase session exists.
+  /// Returns true if a JWT token is stored in SharedPreferences.
   static Future<bool> isLoggedIn() async {
-    return _client.auth.currentSession != null;
+    final token = await ApiService.getToken();
+    return token != null;
   }
 }

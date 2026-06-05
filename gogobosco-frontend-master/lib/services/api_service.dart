@@ -77,6 +77,26 @@ class ApiService {
     return _parse(response);
   }
 
+  // ─── GET RAW (List) ────────────────────────────────────────────────────────
+  static Future<List<dynamic>?> getRaw(
+    String endpoint, {
+    bool auth = false,
+    Map<String, String>? queryParams,
+  }) async {
+    var url = Uri.parse("$kBaseUrl$endpoint");
+    if (queryParams != null) {
+      url = url.replace(queryParameters: queryParams);
+    }
+    final response = await http.get(url, headers: await _headers(auth: auth));
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(response.body) as List<dynamic>;
+    }
+    throw ApiException(
+      statusCode: response.statusCode,
+      message: "Error fetching data list",
+    );
+  }
+
   // ─── PUT ───────────────────────────────────────────────────────────────────
   static Future<Map<String, dynamic>> put(
     String endpoint,
